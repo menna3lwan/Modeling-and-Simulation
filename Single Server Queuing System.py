@@ -1,75 +1,93 @@
-import random
-#installin Prettytable package
-from prettytable import PrettyTable
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
-random.seed(10)
+np.random.seed(10)
 
-num_customers = 10
+number_of_customers=int(input("please enter number of customers : "))
 
-customers = [i for i in range(1, num_customers + 1)]
+interarrival_time_list=[]
+cumm_time=0
 
-inter_arrival_times = [random.randrange(1, 10) for _ in range(num_customers)]
-
-service_times = [random.randrange(1, 10) for _ in range(num_customers)]
-
-arrival_times = [0] * num_customers
-arrival_times[0] = inter_arrival_times[0]
-for i in range(1, num_customers):
-    arrival_times[i] = inter_arrival_times[i] + arrival_times[i - 1]
-
-time_service_begins = [0] * num_customers
-time_customer_waits = [0] * num_customers
-time_service_ends = [0] * num_customers
-time_customer_spends = [0] * num_customers
-system_idle_times = [0] * num_customers
-
-time_service_begins[0] = arrival_times[0]
-time_service_ends[0] = service_times[0]
-time_customer_spends[0] = service_times[0]
-
-for i in range(1, num_customers):
-    time_service_begins[i] = max(arrival_times[i], time_service_ends[i - 1])
-    time_customer_waits[i] = time_service_begins[i] - arrival_times[i]
-    time_service_ends[i] = time_service_begins[i] + service_times[i]
-    time_customer_spends[i] = time_service_ends[i] - arrival_times[i]
-    if arrival_times[i] > time_service_ends[i - 1]:
-        system_idle_times[i] = arrival_times[i] - time_service_ends[i - 1]
+size_interval=0
+number_probability=int(input("enter number of probapility of interarrival time : "))
+def add_fractions(a, b):
+    if a != 0:
+        max_decimal_places = max(len(str(a).split('.')[1]), len(str(b).split('.')[1]))
+        result = float(a) + b
+        formatted_result = "{:.{}f}".format(result, max_decimal_places)
+        return formatted_result
     else:
-        system_idle_times[i] = 0
+        return b
 
-table = PrettyTable()
-table.field_names = ['Customer', 'IAT', 'AT', 'ST', 'TSB', 'TCWQ', 'TSE', 'TCSS', 'System Idle']
-for i in range(num_customers):
-    table.add_row([customers[i], inter_arrival_times[i], arrival_times[i], service_times[i],
-                   time_service_begins[i], time_customer_waits[i], time_service_ends[i],
-                   time_customer_spends[i], system_idle_times[i]])
+interarrival_time_list = []
+cummulative = 0
+end_prob=0
 
-print(table)
 
-average_waiting_time = sum(time_customer_waits) / num_customers
-prob_customer_waiting = len([t for t in time_customer_waits if t > 0]) / num_customers
-average_service_time = sum(service_times) / num_customers
-prob_idle_server = sum(system_idle_times) / time_service_ends[-1]
-average_time_between_arrival = arrival_times[-1] / (len(arrival_times) - 1)
-average_waiting_time_for_waiting_customers = sum(time_customer_waits) / len([t for t in time_customer_waits if t > 0])
-average_time_spent_in_system = sum(time_customer_spends) / num_customers
+for i in range(number_probability):
+    while True:
+        try:
+            interarrival_time = int(input(f'Enter interarrival time of {i+1}: '))
+            probability = float(input(f'Enter probability of {i+1}: '))
 
-print("Average waiting time: {:.2f} minutes".format(average_waiting_time))
-print('-' * 50)
+            if probability < 0 or probability > 1:
+                print("Probability must be between 0 and 1.")
+                continue
 
-print("Probability of customer waiting: {:.2f}".format(prob_customer_waiting))
-print('-' * 50)
+            if float(cummulative) + probability > 1:
+                print("The sum of probabilities cannot exceed 1. Please enter a lower probability.")
+                continue
 
-print("Average service time: {:.2f} minutes".format(average_service_time))
-print('-' * 50)
+            cummulative = add_fractions(cummulative, probability)
 
-print("Probability of idle server: {:.2f}".format(prob_idle_server))
-print('-' * 50)
+            end = end_prob
+            end_prob = int(str(cummulative).split('.')[1])
 
-print("Average time between arrivals: {:.2f} minutes".format(average_time_between_arrival))
-print('-' * 50)
+            if size_interval < len(str(end_prob)):
+                size_interval = len(str(end_prob))
 
-print("Average waiting time for those who wait: {:.2f} minutes".format(average_waiting_time_for_waiting_customers))
-print('-' * 50)
+            Random_digit_assignment = [1 + end, end_prob]
+            interarrival_time_list.append([interarrival_time, probability, cummulative, Random_digit_assignment])
 
-print("Average time customer spent in the system: {:.2f} minutes".format(average_time_spent_in_system))
+            break
+        except ValueError:
+            print("Please enter a valid number.")
+
+interarrival_time_list=np.array(interarrival_time_list,dtype=object)
+
+cumm_time=0
+cummulative=0
+end_prob=0
+services_time_list=[]
+size_service=0
+number_probability=int(input("enter number of probapility of service time : "))
+for i in range(number_probability):
+    while True:
+        try:
+            service_time = int(input(f'Enter service time of {i+1}: '))
+            probability = float(input(f'Enter probability of {i+1}: '))
+
+            if probability < 0 or probability > 1:
+                print("Probability must be between 0 and 1")
+                continue
+
+            if float(cummulative) + probability > 1:
+                print("The sum of probabilities cannot exceed 1. Please enter a lower probability.")
+                continue
+
+            cummulative += probability
+
+            end = end_prob
+            end_prob = int(str(cummulative).split('.')[1])
+
+            if size_service < len(str(end_prob)):
+                size_service = len(str(end_prob))
+
+            Random_digit_assignment = [1 + end, end_prob]
+            services_time_list.append([service_time, probability, cummulative, Random_digit_assignment])
+
+            break
+        except ValueError:
+            print("Please enter a valid number.")
+services_time_list=np.array(services_time_list,dtype=object)
